@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { AdminTable } from "@/components/admin/admin-table";
+import { EmptyState } from "@/components/admin/empty-state";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { getContactMessages } from "@/lib/services/contact-messages";
+import { messageStatusSchema } from "@/lib/validation/contact-message";
+import { formatDate } from "@/lib/utils";
+
+export default async function MessagesPage({searchParams}:{searchParams:Promise<{status?:string}>}){const{status}=await searchParams;const parsed=messageStatusSchema.safeParse(status);const messages=await getContactMessages(parsed.success?parsed.data:undefined);return <div className="space-y-5"><div><h1 className="text-2xl font-semibold">Contact messages</h1><p className="text-sm text-slate-500">Pesan tidak dapat dihapus pada Phase 1.</p></div><div className="flex gap-2">{["all","new","read","replied","archived"].map(s=><Link key={s} className="rounded-full border bg-white px-3 py-1 text-sm" href={s==="all"?"/admin/messages":`/admin/messages?status=${s}`}>{s}</Link>)}</div>{!messages.length?<EmptyState title="Tidak ada pesan" description="Pesan masuk akan tampil di sini."/>:<AdminTable><thead><tr className="bg-slate-50 text-xs uppercase text-slate-500"><th className="p-3">Sender</th><th className="p-3">Subject</th><th className="p-3">Status</th><th className="p-3">Received</th></tr></thead><tbody className="divide-y">{messages.map(m=><tr key={m.id}><td className="p-3"><Link className="font-medium hover:underline" href={`/admin/messages/${m.id}`}>{m.name}</Link><p className="text-xs text-slate-500">{m.email}</p></td><td className="p-3">{m.subject}</td><td className="p-3"><StatusBadge status={m.status}/></td><td className="p-3">{formatDate(m.created_at)}</td></tr>)}</tbody></AdminTable>}</div>}

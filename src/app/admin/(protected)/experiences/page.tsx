@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { AdminTable } from "@/components/admin/admin-table";
+import { ConfirmDeleteDialog } from "@/components/admin/confirm-delete-dialog";
+import { EmptyState } from "@/components/admin/empty-state";
+import { deleteExperienceAction } from "@/lib/actions/experiences";
+import { getExperiences } from "@/lib/services/experiences";
+
+export default async function ExperiencesPage() { const items = await getExperiences(); return <div className="space-y-5"><div className="flex justify-between"><div><h1 className="text-2xl font-semibold">Experiences</h1><p className="text-sm text-slate-500">Kelola riwayat profesional.</p></div><Link className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white" href="/admin/experiences/new">Tambah</Link></div>{!items.length ? <EmptyState title="Belum ada experience" description="Tambahkan pengalaman profesional." /> : <AdminTable><thead><tr className="bg-slate-50 text-xs uppercase text-slate-500"><th className="p-3">Role</th><th className="p-3">Period</th><th className="p-3">Actions</th></tr></thead><tbody className="divide-y">{items.map(x => <tr key={x.id}><td className="p-3"><p className="font-medium">{x.title}</p><p className="text-xs text-slate-500">{x.company}</p></td><td className="p-3">{x.start_date} — {x.is_current ? "Sekarang" : x.end_date}</td><td className="p-3"><div className="flex gap-3"><Link href={`/admin/experiences/${x.id}/edit`} className="font-medium hover:underline">Edit</Link><ConfirmDeleteDialog action={deleteExperienceAction.bind(null, x.id)} itemName={`${x.title} at ${x.company}`} /></div></td></tr>)}</tbody></AdminTable>}</div>; }

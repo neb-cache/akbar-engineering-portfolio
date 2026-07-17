@@ -1,0 +1,7 @@
+import { notFound } from "next/navigation";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { updateMessageStatusAction } from "@/lib/actions/contact-messages";
+import { getContactMessageById } from "@/lib/services/contact-messages";
+import { formatDate } from "@/lib/utils";
+
+export default async function MessagePage({params}:{params:Promise<{id:string}>}){const{id}=await params;const m=await getContactMessageById(id);if(!m)notFound();return <div className="max-w-3xl space-y-5"><div className="flex items-center gap-3"><h1 className="text-2xl font-semibold">{m.subject}</h1><StatusBadge status={m.status}/></div><section className="rounded-lg border bg-white p-6"><dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-slate-500">Sender</dt><dd className="font-medium">{m.name}</dd></div><div><dt className="text-slate-500">Email</dt><dd><a className="underline" href={`mailto:${m.email}`}>{m.email}</a></dd></div><div><dt className="text-slate-500">Company</dt><dd>{m.company??"—"}</dd></div><div><dt className="text-slate-500">Received</dt><dd>{formatDate(m.created_at)}</dd></div></dl><div className="mt-6 whitespace-pre-wrap border-t pt-6 leading-7">{m.message}</div></section><div className="flex flex-wrap gap-2">{["read","replied","archived"].map(status=><form key={status} action={updateMessageStatusAction.bind(null,id,status)}><button className="rounded-md border bg-white px-3 py-2 text-sm" type="submit">Mark {status}</button></form>)}</div></div>}
