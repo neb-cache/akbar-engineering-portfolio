@@ -1,0 +1,18 @@
+import type { Metadata } from "next";
+import { EmptyState } from "@/components/public/empty-state";
+import { ProjectCard } from "@/components/public/project-card";
+import { SectionHeading } from "@/components/public/section-heading";
+import { getPublicProjects } from "@/lib/public/data";
+import { pageMetadata } from "@/lib/public/metadata";
+
+export const metadata: Metadata = pageMetadata("Projects", "Selected enterprise platforms, integrated applications, mobile products, and intelligent systems.", "/projects");
+
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ q?: string; type?: string; technology?: string; featured?: string }> }) {
+  const params=await searchParams; const projects=await getPublicProjects();
+  const types=[...new Set(projects.map(project=>project.project_type).filter((value):value is string=>Boolean(value)))].sort();
+  const technologies=[...new Set(projects.flatMap(project=>project.project_technologies.map(item=>item.name)))].sort();
+  const query=params.q?.trim().toLowerCase()??"";
+  const filtered=projects.filter(project=>(!query||`${project.title} ${project.short_description}`.toLowerCase().includes(query))&&(!params.type||project.project_type===params.type)&&(!params.technology||project.project_technologies.some(item=>item.name===params.technology))&&(params.featured!=="true"||project.featured));
+  const field="border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent-gold)] focus:outline-none";
+  return <div className="public-container py-16 sm:py-24"><SectionHeading label="Project archive" title="Technical records from product to production." description="Filter the archive by system category, technology, or featured status. Confidential records contain only intentionally published context."/><form action="/projects" method="get" className="mb-10 grid gap-3 border-y border-[var(--border)] py-5 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_auto_auto]"><label className="sr-only" htmlFor="project-search">Search projects</label><input id="project-search" name="q" defaultValue={params.q} placeholder="Search title or summary" maxLength={120} className={field}/><label className="sr-only" htmlFor="project-type">Project type</label><select id="project-type" name="type" defaultValue={params.type??""} className={field}><option value="">All project types</option>{types.map(type=><option key={type}>{type}</option>)}</select><label className="sr-only" htmlFor="project-technology">Technology</label><select id="project-technology" name="technology" defaultValue={params.technology??""} className={field}><option value="">All technologies</option>{technologies.map(technology=><option key={technology}>{technology}</option>)}</select><label className="flex min-h-11 items-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs"><input type="checkbox" name="featured" value="true" defaultChecked={params.featured==="true"}/> Featured</label><button className="focus-ring bg-[var(--paper)] px-5 py-3 text-xs font-semibold uppercase tracking-[.1em] text-[var(--ink)]">Apply</button></form><p className="mb-5 font-mono text-[.68rem] uppercase tracking-[.12em] text-[var(--text-secondary)]">{filtered.length} records located</p>{filtered.length?<div className="grid gap-px bg-[var(--border)] lg:grid-cols-2">{filtered.map((project,index)=><ProjectCard key={project.id} project={project} index={index} paper={index%5===0}/>)}</div>:<EmptyState title="No matching technical records." description="Adjust the search or remove one of the selected filters."/>}</div>;
+}

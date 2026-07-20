@@ -1,12 +1,12 @@
 # Akbar Engineering Portfolio
 
-Next.js App Router portfolio foundation and internal CMS for Akbar Aulia Ramadhan. Phase 1 includes Supabase Auth, PostgreSQL/RLS, Storage uploads, typed services, server-side validation, admin CRUD, seed data, and a database health endpoint.
+Production portfolio and internal CMS for Akbar Aulia Ramadhan, built with the Next.js App Router and Supabase. The public site includes a filterable project archive, confidential-safe case studies, experience and capability records, contact capture, responsive editorial design, and SEO metadata. The protected CMS provides Auth, CRUD workflows, media uploads, and message management.
 
 ## Local setup
 
 1. Copy `.env.example` to `.env.local` and fill in the four values.
-2. Run `supabase/migrations/001_initial_schema.sql` in the Supabase SQL Editor.
-3. Run `supabase/seed.sql`.
+2. Run `supabase/migrations/001_initial_schema.sql` and then `supabase/migrations/002_phase_2_public_projects.sql` in the Supabase SQL Editor.
+3. Run `supabase/seed.sql` once on a new database.
 4. Create the first user in Supabase Authentication, then confirm its `profiles.role` is `admin`.
 5. Run `npm install` and `npm run dev`.
 
@@ -31,4 +31,4 @@ npm run build
 npm run start
 ```
 
-Detailed Supabase and security setup is in [docs/phase-1-setup.md](docs/phase-1-setup.md).
+Detailed Supabase setup is in [docs/phase-1-setup.md](docs/phase-1-setup.md). Public-site configuration and launch checks are in [docs/phase-2-setup.md](docs/phase-2-setup.md).

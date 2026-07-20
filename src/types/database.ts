@@ -47,6 +47,10 @@ export type ProjectRow = {
   updated_at: string;
 };
 
+export type PublicProjectRow = Omit<ProjectRow, "description"> & {
+  description: string | null;
+};
+
 export type ExperienceRow = {
   id: string;
   company: string;
@@ -136,7 +140,12 @@ export interface Database {
       contact_messages: Table<ContactMessageRow>;
       site_settings: Table<SiteSettingRow>;
     };
-    Views: Record<string, never>;
+    Views: {
+      public_projects: {
+        Row: PublicProjectRow;
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

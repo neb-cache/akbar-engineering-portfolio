@@ -1,0 +1,1 @@
+export function LoadingSkeleton() { return <div className="public-container animate-pulse py-20"><div className="h-3 w-40 bg-[var(--border)]"/><div className="mt-8 h-20 max-w-3xl bg-[var(--surface-soft)]"/><div className="mt-12 grid gap-4 md:grid-cols-2"><div className="h-80 bg-[var(--surface)]"/><div className="h-80 bg-[var(--surface)]"/></div></div>; }

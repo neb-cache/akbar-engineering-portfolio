@@ -1,0 +1,3 @@
+"use client";
+
+export function ErrorState({ reset }: { reset: () => void }) { return <div className="public-container py-24"><div className="border border-[var(--danger)] bg-[var(--surface)] p-8"><p className="editorial-label !text-[var(--danger)]">Record unavailable</p><h1 className="mt-5 font-serif text-5xl">The archive could not be opened.</h1><p className="mt-4 max-w-xl text-sm leading-7 text-[var(--text-secondary)]">A database or network error interrupted this request. No private error details have been exposed.</p><button onClick={reset} className="focus-ring mt-7 border border-[var(--accent-gold)] px-4 py-3 text-xs uppercase tracking-[.1em]">Try again</button></div></div>; }

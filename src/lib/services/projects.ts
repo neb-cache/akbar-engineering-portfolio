@@ -5,7 +5,7 @@ import { emptyToNull, slugify } from "@/lib/utils";
 import type { ProjectInput } from "@/lib/validation/project";
 import type { Project } from "@/types/project";
 
-const projectSelect = "*, project_technologies(*), project_highlights(*)";
+const projectSelect = "*, project_technologies(*), project_highlights(*), project_images(*)";
 
 function projectValues(input: ProjectInput) {
   return {

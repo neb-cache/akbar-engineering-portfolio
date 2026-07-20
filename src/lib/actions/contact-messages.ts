@@ -8,10 +8,14 @@ import { invalidResult, safeError } from "./helpers";
 import type { ActionResult } from "@/types/action";
 
 export async function submitContactMessageAction(input: ContactMessageInput): Promise<ActionResult> {
+  if (input.website?.trim()) {
+    return { success: true, message: "Pesan berhasil dikirim." };
+  }
   const parsed = contactMessageSchema.safeParse(input);
   if (!parsed.success) return invalidResult(parsed.error);
   try {
     await createContactMessage(parsed.data);
+    revalidatePath("/admin/messages");
     return { success: true, message: "Pesan berhasil dikirim." };
   } catch (error) {
     return safeError("Pesan gagal dikirim.", error);
