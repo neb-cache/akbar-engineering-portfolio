@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { BriefcaseBusiness, FolderKanban, Gauge, Mail, Wrench } from "lucide-react";
+import { BriefcaseBusiness, FolderKanban, Gauge, Mail, Settings, Users, Wrench } from "lucide-react";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: Gauge },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/experiences", label: "Experiences", icon: BriefcaseBusiness },
   { href: "/admin/skills", label: "Skills", icon: Wrench },
+  { href: "/admin/mentorship", label: "Mentorship", icon: Users },
+  { href: "/admin/settings", label: "Authority Settings", icon: Settings },
   { href: "/admin/messages", label: "Messages", icon: Mail },
 ];
 

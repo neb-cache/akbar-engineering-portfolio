@@ -1,0 +1,1 @@
+export function VisibilityBadge({ isPublic }: { isPublic: boolean }) { return <span className={`inline-flex rounded-full px-2 py-1 text-[.65rem] font-semibold uppercase tracking-wide ${isPublic ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-700"}`}><span className="sr-only">Visibility: </span>{isPublic ? "Public" : "Private"}</span>; }

@@ -1,0 +1,3 @@
+import { ArrowRight } from "lucide-react";
+import type { DiagramEdge as DiagramEdgeType } from "@/types/authority";
+export function DiagramEdge({ edge, labels }: { edge: DiagramEdgeType; labels: Map<string,string> }) { return <li className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-xs"><span>{labels.get(edge.from)??edge.from}</span><span className="flex items-center gap-2 font-mono text-[.58rem] uppercase text-[var(--accent-gold)]"><span className="hidden sm:inline">{edge.label}</span><ArrowRight size={13} aria-hidden="true"/></span><span>{labels.get(edge.to)??edge.to}</span></li>; }

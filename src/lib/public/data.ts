@@ -5,11 +5,15 @@ import { createPublicClient } from "@/lib/supabase/public";
 import type { Experience } from "@/types/experience";
 import type { PublicProject } from "@/types/project";
 import type { Skill } from "@/types/skill";
-import type { Json, PublicProjectRow } from "@/types/database";
+import type { PublicProjectAuthority } from "@/types/authority";
+import type { Json, PublicMentorshipRecordRow, PublicProjectRow } from "@/types/database";
+import { getPublicCaseStudySections, getPublicMentorshipRecords, getPublicProjectDiagrams, getPublicProjectMetrics } from "@/lib/services/authority";
 
 export type PublicSiteProfile = {
   name: string;
+  professionalName: string;
   title: string;
+  secondaryIdentity: string;
   heroTitle: string;
   heroDescription: string;
   email: string | null;
@@ -18,19 +22,33 @@ export type PublicSiteProfile = {
   resumeUrl: string | null;
   location: string;
   availability: string;
+  builderStatement: string;
+  systemsPillar: string;
+  peoplePillar: string;
+  executionPillar: string;
+  recruiterCta: string;
+  incident: { title: string; summary: string; metricLabel: string; metricValue: string; metricContext: string };
 };
 
 export const fallbackProfile: PublicSiteProfile = {
   name: "Akbar Aulia Ramadhan",
+  professionalName: "Akbar A.R. Antapradja",
   title: "Principal Full-Stack & Systems Engineer",
-  heroTitle: "Building enterprise platforms across software, integration, automation, and infrastructure.",
-  heroDescription: "I design and deliver full-stack systems spanning Golang backends, Next.js applications, Flutter mobile products, ERP integration, AI-assisted automation, and production infrastructure.",
+  secondaryIdentity: "Builder of Systems & People",
+  heroTitle: "Building systems, teams, and operational capability across software, integration, automation, and infrastructure.",
+  heroDescription: "I design and deliver business-critical systems across Golang backends, Next.js applications, Flutter products, ERP integration, automation, and production infrastructure—while developing the people and teams responsible for operating them.",
   email: null,
   githubUrl: null,
   linkedinUrl: null,
   resumeUrl: null,
   location: "Bogor, Indonesia",
   availability: "Available for remote and international opportunities",
+  builderStatement: "Building systems is only half of engineering leadership. The other half is building the people capable of owning, improving, and operating them.",
+  systemsPillar: "I design systems that connect business processes, applications, infrastructure, and operational teams. My work spans frontend, backend, mobile, ERP, automation, and production environments.",
+  peoplePillar: "I identify technical potential beyond surface-level knowledge, develop junior talent through practical ownership and structured feedback, and help place people where they can become effective contributors.",
+  executionPillar: "I take responsibility for delivery across technical and organizational boundaries, coordinating developers, infrastructure personnel, vendors, and stakeholders until systems are ready for production use.",
+  recruiterCta: "Inspect the selected systems record, review the engineering timeline, download the current resume, or start a direct conversation.",
+  incident: { title: "Unauthorized Crypto-Mining Incident Remediation", summary: "Resolved an unauthorized crypto-mining infrastructure incident that had driven CPU utilization to approximately 100%, reducing utilization to approximately 5% through root-cause analysis, containment, remediation, security hardening, and improved operational controls.", metricLabel: "CPU Utilization", metricValue: "~100% → ~5%", metricContext: "After remediation and hardening" },
 };
 
 function objectValue(value: Json): Record<string, Json | undefined> {
@@ -46,29 +64,42 @@ export const getPublicSiteProfile = cache(async (): Promise<PublicSiteProfile> =
   const { data, error } = await supabase
     .from("site_settings")
     .select("key, value")
-    .in("key", ["hero", "social_links", "resume_url", "contact", "availability"]);
+    .in("key", ["hero", "social_links", "resume_url", "contact", "availability", "professional_identity", "resume", "authority_framework", "contact_profile"]);
   if (error) throw error;
   const settings = new Map((data ?? []).map((item) => [item.key, item.value]));
   const hero = objectValue(settings.get("hero") ?? null);
   const social = objectValue(settings.get("social_links") ?? null);
   const contact = objectValue(settings.get("contact") ?? null);
   const availability = objectValue(settings.get("availability") ?? null);
+  const identity = objectValue(settings.get("professional_identity") ?? null);
+  const authority = objectValue(settings.get("authority_framework") ?? null);
+  const contactProfile = objectValue(settings.get("contact_profile") ?? null);
+  const incident = objectValue(authority.incident ?? null);
   const resumeSetting = settings.get("resume_url");
-  const resume = typeof resumeSetting === "string"
+  const legacyResume = typeof resumeSetting === "string"
     ? resumeSetting
     : stringValue(objectValue(resumeSetting ?? null).url);
+  const resume = stringValue(objectValue(settings.get("resume") ?? null).url) ?? legacyResume;
 
   return {
-    name: stringValue(hero.name) ?? fallbackProfile.name,
-    title: stringValue(hero.title) ?? fallbackProfile.title,
+    name: stringValue(identity.fullName) ?? stringValue(hero.name) ?? fallbackProfile.name,
+    professionalName: stringValue(identity.professionalName) ?? fallbackProfile.professionalName,
+    title: stringValue(identity.title) ?? stringValue(hero.title) ?? fallbackProfile.title,
+    secondaryIdentity: stringValue(identity.secondaryIdentity) ?? fallbackProfile.secondaryIdentity,
     heroTitle: stringValue(hero.headline) ?? fallbackProfile.heroTitle,
     heroDescription: stringValue(hero.description) ?? fallbackProfile.heroDescription,
-    email: stringValue(contact.email),
+    email: stringValue(contactProfile.email) ?? stringValue(contact.email),
     githubUrl: stringValue(social.github),
     linkedinUrl: stringValue(social.linkedin),
     resumeUrl: resume,
-    location: stringValue(contact.location) ?? fallbackProfile.location,
-    availability: stringValue(availability.message) ?? fallbackProfile.availability,
+    location: stringValue(contactProfile.location) ?? stringValue(contact.location) ?? fallbackProfile.location,
+    availability: stringValue(contactProfile.availability) ?? stringValue(availability.message) ?? fallbackProfile.availability,
+    builderStatement: stringValue(authority.builderStatement) ?? fallbackProfile.builderStatement,
+    systemsPillar: stringValue(authority.systems) ?? fallbackProfile.systemsPillar,
+    peoplePillar: stringValue(authority.people) ?? fallbackProfile.peoplePillar,
+    executionPillar: stringValue(authority.execution) ?? fallbackProfile.executionPillar,
+    recruiterCta: stringValue(authority.recruiterCta) ?? fallbackProfile.recruiterCta,
+    incident: { title: stringValue(incident.title) ?? fallbackProfile.incident.title, summary: stringValue(incident.summary) ?? fallbackProfile.incident.summary, metricLabel: stringValue(incident.metricLabel) ?? fallbackProfile.incident.metricLabel, metricValue: stringValue(incident.metricValue) ?? fallbackProfile.incident.metricValue, metricContext: stringValue(incident.metricContext) ?? fallbackProfile.incident.metricContext },
   };
 });
 
@@ -88,16 +119,18 @@ async function hydrateProjects(rows: PublicProjectRow[]): Promise<PublicProject[
   const [technologies, highlights, images] = await Promise.all([
     supabase.from("project_technologies").select("*").in("project_id", ids).order("sort_order"),
     supabase.from("project_highlights").select("*").in("project_id", ids).order("sort_order"),
-    supabase.from("project_images").select("*").in("project_id", ids).order("sort_order"),
+    supabase.from("public_project_images").select("*").in("project_id", ids).order("sort_order"),
   ]);
-  if (technologies.error || highlights.error || images.error) {
+  const missingImageView = images.error && (images.error.code === "PGRST205" || images.error.code === "42P01");
+  const imageRows = missingImageView ? [] : images.data ?? [];
+  if (technologies.error || highlights.error || (images.error && !missingImageView)) {
     throw technologies.error ?? highlights.error ?? images.error;
   }
   return rows.map((project) => ({
     ...project,
     project_technologies: (technologies.data ?? []).filter((item) => item.project_id === project.id),
     project_highlights: (highlights.data ?? []).filter((item) => item.project_id === project.id),
-    project_images: (images.data ?? []).filter((item) => item.project_id === project.id),
+    project_images: imageRows.filter((item) => item.project_id === project.id),
   }));
 }
 
@@ -150,4 +183,20 @@ export const getPublicSkills = cache(async (): Promise<Skill[]> => {
     .order("name");
   if (error) throw error;
   return data ?? [];
+});
+
+export const getPublicProjectAuthoritySafe = cache(async (projectId: string): Promise<PublicProjectAuthority> => {
+  try {
+    const [sections, metrics, diagrams] = await Promise.all([getPublicCaseStudySections(projectId), getPublicProjectMetrics(projectId), getPublicProjectDiagrams(projectId)]);
+    return { sections, metrics, diagrams };
+  } catch (error) {
+    const code = typeof error === "object" && error !== null && "code" in error ? error.code : null;
+    if (code !== "PGRST205" && code !== "42P01") console.error("Public project authority could not be loaded", error);
+    return { sections: [], metrics: [], diagrams: [] };
+  }
+});
+
+export const getPublicMentorshipRecordsSafe = cache(async (): Promise<PublicMentorshipRecordRow[]> => {
+  try { return await getPublicMentorshipRecords(); }
+  catch (error) { const code = typeof error === "object" && error !== null && "code" in error ? error.code : null; if (code !== "PGRST205" && code !== "42P01") console.error("Public mentorship records could not be loaded", error); return []; }
 });

@@ -1,4 +1,4 @@
-export type ActionResult<T = undefined> =
+export type ActionResult<T = unknown> =
   | { success: true; data?: T; message?: string }
   | {
       success: false;

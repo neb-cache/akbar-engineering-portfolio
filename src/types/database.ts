@@ -107,8 +107,65 @@ export type ProjectImageRow = ChildRow & {
   image_url: string;
   alt_text: string | null;
   caption: string | null;
+  image_category: ProjectImageCategory | null;
+  is_public: boolean;
   created_at: string;
 };
+export type ProjectImageCategory = "interface" | "mobile" | "architecture" | "workflow" | "infrastructure" | "report" | "code" | "documentation" | "other";
+export type CaseStudySectionType = "summary" | "context" | "challenge" | "constraint" | "responsibility" | "architecture" | "approach" | "decision" | "tradeoff" | "coordination" | "outcome" | "lesson" | "confidentiality" | "custom";
+export type ProjectCaseStudySectionRow = ChildRow & {
+  project_id: string;
+  section_key: string;
+  section_type: CaseStudySectionType;
+  title: string;
+  content: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+};
+export type ProjectMetricRow = ChildRow & {
+  project_id: string;
+  metric_key: string;
+  label: string;
+  value: string;
+  context: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+};
+export type DiagramType = "flow" | "layered" | "integration" | "architecture" | "sequence-summary";
+export type ProjectDiagramRow = ChildRow & {
+  project_id: string;
+  diagram_key: string;
+  title: string;
+  description: string | null;
+  diagram_type: DiagramType;
+  diagram_data: Json;
+  text_alternative: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+};
+export type MentorshipCategory = "candidate-assessment" | "private-mentorship" | "intern-development" | "referral" | "team-formation" | "technical-guidance";
+export type MentorshipRecordRow = {
+  id: string;
+  record_key: string;
+  title: string;
+  category: MentorshipCategory;
+  summary: string;
+  method: string | null;
+  outcome: string | null;
+  is_public: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicCaseStudySectionRow = Omit<ProjectCaseStudySectionRow, "is_public" | "created_at" | "updated_at">;
+export type PublicProjectMetricRow = Omit<ProjectMetricRow, "is_public" | "created_at" | "updated_at">;
+export type PublicProjectDiagramRow = Omit<ProjectDiagramRow, "is_public" | "created_at" | "updated_at">;
+export type PublicProjectImageRow = Omit<ProjectImageRow, "is_public" | "created_at">;
+export type PublicMentorshipRecordRow = Omit<MentorshipRecordRow, "is_public" | "created_at" | "updated_at">;
 export type ExperienceHighlightRow = ChildRow & {
   experience_id: string;
   content: string;
@@ -133,6 +190,10 @@ export interface Database {
       project_technologies: Table<ProjectTechnologyRow>;
       project_highlights: Table<ProjectHighlightRow>;
       project_images: Table<ProjectImageRow>;
+      project_case_study_sections: Table<ProjectCaseStudySectionRow>;
+      project_metrics: Table<ProjectMetricRow>;
+      project_diagrams: Table<ProjectDiagramRow>;
+      mentorship_records: Table<MentorshipRecordRow>;
       experiences: Table<ExperienceRow>;
       experience_highlights: Table<ExperienceHighlightRow>;
       experience_technologies: Table<ExperienceTechnologyRow>;
@@ -145,6 +206,11 @@ export interface Database {
         Row: PublicProjectRow;
         Relationships: [];
       };
+      public_project_case_study_sections: Table<PublicCaseStudySectionRow>;
+      public_project_metrics: Table<PublicProjectMetricRow>;
+      public_project_diagrams: Table<PublicProjectDiagramRow>;
+      public_project_images: Table<PublicProjectImageRow>;
+      public_mentorship_records: Table<PublicMentorshipRecordRow>;
     };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
