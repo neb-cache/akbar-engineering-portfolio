@@ -23,5 +23,19 @@ const chain = [
 
 export default async function HomePage() {
   const [profile, projects, experiences, skills, mentorship] = await Promise.all([getPublicSiteProfileSafe(), getPublicProjects(), getPublicExperiences(), getPublicSkills(), getPublicMentorshipRecordsSafe()]);
-  return <><Hero profile={profile}/><SystemsPeopleExecution profile={profile}/><section className="editorial-section"><div className="public-container"><SectionHeading label="Engineering range" title="One engineer across the entire delivery chain." description="I work across application layers because system outcomes rarely stop at a framework boundary."/><div className="grid border-l border-t border-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">{chain.map(([number,title,description])=><article key={number} className="border-b border-r border-[var(--border)] p-6 sm:p-8"><span className="font-mono text-xs text-[var(--accent-gold)]">{number}</span><h3 className="mt-8 font-serif text-3xl">{title}</h3><p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">{description}</p></article>)}</div></div></section><FeaturedProjects projects={projects}/><CaseStudyPreview available={projects.some((project)=>project.slug==="centralized-enterprise-bff")}/><IncidentResponseFeature incident={profile.incident}/><section className="editorial-section"><div className="public-container"><SectionHeading label="Selected experience" title="A record of expanding system ownership."/><ExperienceTimeline experiences={experiences} compact/><div className="mt-10 text-right"><Link href="/experience" className="focus-ring font-mono text-xs uppercase tracking-[.12em] underline">Complete experience archive →</Link></div></div></section><BuilderOfSystemsPeople profile={profile} records={mentorship}/><CapabilityIndex skills={skills}/><InternationalDelivery/><ContactCta profile={profile}/></>;
+  return (
+    <>
+      <Hero profile={profile} />
+      <SystemsPeopleExecution profile={profile} />
+      <section className="editorial-section"><div className="public-container"><SectionHeading label="Engineering range" title="One engineer across the entire delivery chain." description="I work across application layers because system outcomes rarely stop at a framework boundary." /><div className="grid border-l border-t border-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">{chain.map(([number, title, description]) => <article key={number} className="interactive-panel border-b border-r border-[var(--border)] p-6 sm:p-8"><span className="font-mono text-xs text-[var(--accent-gold)]">{number}</span><h3 className="mt-8 font-serif text-3xl">{title}</h3><p className="reading-measure mt-3 text-sm leading-7 text-[var(--text-secondary)]">{description}</p></article>)}</div></div></section>
+      <FeaturedProjects projects={projects} />
+      <CaseStudyPreview available={projects.some((project) => project.slug === "centralized-enterprise-bff")} />
+      <IncidentResponseFeature incident={profile.incident} />
+      <section className="editorial-section"><div className="public-container"><SectionHeading label="Selected experience" title="A record of expanding system ownership." /><ExperienceTimeline experiences={experiences} compact /><div className="mt-10 text-right"><Link href="/experience" className="button-base button-editorial">Complete experience archive →</Link></div></div></section>
+      <BuilderOfSystemsPeople profile={profile} records={mentorship} />
+      <CapabilityIndex skills={skills} />
+      <InternationalDelivery />
+      <ContactCta profile={profile} />
+    </>
+  );
 }

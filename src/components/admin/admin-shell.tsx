@@ -3,7 +3,7 @@ import { AdminSidebar } from "./admin-sidebar";
 
 export function AdminShell({ children, name }: { children: React.ReactNode; name: string }) {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 md:flex">
+    <div className="admin-shell min-h-screen bg-slate-50 text-slate-900 md:flex">
       <AdminSidebar />
       <div className="min-w-0 flex-1">
         <AdminHeader name={name} />

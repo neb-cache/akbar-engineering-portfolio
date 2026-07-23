@@ -9,7 +9,7 @@ export function AdminHeader({ name }: { name: string }) {
         <p className="text-xs text-slate-500">Administrator</p>
       </div>
       <form action={logoutAction}>
-        <button className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50" type="submit">
+        <button className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm transition-colors hover:border-slate-400 hover:bg-slate-50" type="submit">
           <LogOut size={16} /> Logout
         </button>
       </form>
