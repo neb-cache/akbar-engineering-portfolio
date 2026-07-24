@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import {
@@ -17,9 +17,17 @@ import {
 } from "@/lib/validation/authority";
 import type { ActionResult } from "@/types/action";
 import { invalidResult, safeError } from "./helpers";
+import { publicCacheTags } from "@/lib/public/cache";
 
 const idSchema = z.uuid();
-function refreshProjectAuthority() { revalidatePath("/"); revalidatePath("/projects"); revalidatePath("/projects/[slug]", "page"); revalidatePath("/admin/projects/[id]/edit", "page"); }
+function refreshProjectAuthority() {
+  updateTag(publicCacheTags.authority);
+  updateTag(publicCacheTags.projects);
+  revalidatePath("/");
+  revalidatePath("/projects");
+  revalidatePath("/projects/[slug]", "page");
+  revalidatePath("/admin/projects/[id]/edit", "page");
+}
 
 async function validatedSave<T>(schema: z.ZodType<T>, input: T, id: string | null, create: (data: T) => Promise<string>, update: (id: string, data: T) => Promise<void>, label: string): Promise<ActionResult<{ id: string }>> {
   await requireAdmin(); const parsed = schema.safeParse(input); if (!parsed.success) return invalidResult(parsed.error);
@@ -52,17 +60,18 @@ export async function reorderProjectAuthorityAction(kind: "sections" | "metrics"
 
 export async function saveMentorshipRecordAction(id: string | null, input: MentorshipRecordInput): Promise<ActionResult<{ id: string }>> {
   const result = await validatedSave(mentorshipRecordSchema, input, id, createMentorshipRecord, updateMentorshipRecord, "Mentorship record");
+  updateTag(publicCacheTags.mentorship);
   revalidatePath("/admin/mentorship"); revalidatePath("/about"); return result;
 }
-export async function deleteMentorshipRecordAction(id: string) { const result = await validatedDelete(id, deleteMentorshipRecord, "Mentorship record"); revalidatePath("/admin/mentorship"); revalidatePath("/about"); return result; }
+export async function deleteMentorshipRecordAction(id: string) { const result = await validatedDelete(id, deleteMentorshipRecord, "Mentorship record"); updateTag(publicCacheTags.mentorship); revalidatePath("/admin/mentorship"); revalidatePath("/about"); return result; }
 export async function reorderMentorshipRecordsAction(input: ReorderInput): Promise<ActionResult> {
   await requireAdmin(); const parsed = reorderSchema.safeParse(input); if (!parsed.success) return invalidResult(parsed.error);
-  try { await reorderMentorshipRecords(parsed.data); revalidatePath("/admin/mentorship"); revalidatePath("/about"); return { success: true, message: "Urutan berhasil diperbarui." }; }
+  try { await reorderMentorshipRecords(parsed.data); updateTag(publicCacheTags.mentorship); revalidatePath("/admin/mentorship"); revalidatePath("/about"); return { success: true, message: "Urutan berhasil diperbarui." }; }
   catch (error) { return safeError("Urutan gagal diperbarui.", error); }
 }
 
 export async function saveAuthoritySettingsAction(input: AuthoritySettingsInput): Promise<ActionResult> {
   await requireAdmin(); const parsed = authoritySettingsSchema.safeParse(input); if (!parsed.success) return invalidResult(parsed.error);
-  try { await updateAuthoritySettings(parsed.data); revalidatePath("/", "layout"); return { success: true, message: "Authority settings berhasil disimpan." }; }
+  try { await updateAuthoritySettings(parsed.data); updateTag(publicCacheTags.profile); revalidatePath("/", "layout"); return { success: true, message: "Authority settings berhasil disimpan." }; }
   catch (error) { return safeError("Authority settings gagal disimpan.", error); }
 }

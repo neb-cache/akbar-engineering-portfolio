@@ -2,7 +2,7 @@ import { Footer } from "@/components/public/footer";
 import { Navbar } from "@/components/public/navbar";
 import { getPublicSiteProfileSafe } from "@/lib/public/data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const profile = await getPublicSiteProfileSafe();

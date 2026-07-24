@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-const optionalUrl = z.union([z.literal(""), z.url("URL tidak valid.")]);
+const httpsUrl = z.url("URL tidak valid.").refine(
+  (value) => new URL(value).protocol === "https:",
+  "Gunakan URL HTTPS.",
+);
+const optionalUrl = z.union([z.literal(""), httpsUrl]);
 
 export const experienceSchema = z
   .object({

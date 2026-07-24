@@ -10,6 +10,8 @@ import { ProjectGallery } from "@/components/public/project-gallery";
 import { ProjectMetrics } from "@/components/public/project-metrics";
 import { Reveal } from "@/components/public/reveal";
 import { TechnologyList } from "@/components/public/technology-list";
+import { JsonLd } from "@/components/seo/json-ld";
+import { TrackEventOnView } from "@/components/analytics/track-event";
 import { getPublicProjectAuthoritySafe, getPublicProjectBySlug, getPublicProjects } from "@/lib/public/data";
 import { absoluteUrl, defaultDescription } from "@/lib/public/metadata";
 import { projectYear, publicProjectDescription } from "@/lib/public/project-presenter";
@@ -39,6 +41,35 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   return (
     <article>
+      <TrackEventOnView
+        name="Project viewed"
+        properties={{ project: project.slug, type: project.project_type ?? "unspecified" }}
+      />
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "CreativeWork",
+            "@id": absoluteUrl(`/projects/${project.slug}#project`),
+            name: project.title,
+            description: project.short_description,
+            url: absoluteUrl(`/projects/${project.slug}`),
+            dateCreated: project.created_at,
+            dateModified: project.updated_at,
+            author: { "@id": absoluteUrl("/#person") },
+            keywords: project.project_technologies.map((item) => item.name),
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+              { "@type": "ListItem", position: 2, name: "Projects", item: absoluteUrl("/projects") },
+              { "@type": "ListItem", position: 3, name: project.title, item: absoluteUrl(`/projects/${project.slug}`) },
+            ],
+          },
+        ]}
+      />
       <header className="border-b border-[var(--border)] py-14 sm:py-24">
         <div className="public-container">
           <Link href="/projects" className="button-base button-editorial !text-[var(--text-secondary)]"><ArrowLeft size={14} />Back to archive</Link>

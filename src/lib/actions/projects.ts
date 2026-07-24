@@ -1,12 +1,14 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { publicCacheTags } from "@/lib/public/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createProject, deleteProject, updateProject } from "@/lib/services/projects";
 import { deleteProjectImage, uploadProjectImage } from "@/lib/services/storage";
 import { projectSchema, type ProjectInput } from "@/lib/validation/project";
 import { invalidResult, safeError } from "./helpers";
 import type { ActionResult } from "@/types/action";
+import { logServerEvent } from "@/lib/observability/logger";
 
 export async function saveProjectAction(id: string | null, input: ProjectInput): Promise<ActionResult<{ id: string }>> {
   await requireAdmin();
@@ -16,6 +18,7 @@ export async function saveProjectAction(id: string | null, input: ProjectInput):
     const projectId = id ? (await updateProject(id, parsed.data), id) : await createProject(parsed.data);
     revalidatePath("/admin/projects");
     revalidatePath("/");
+    updateTag(publicCacheTags.projects);
     return { success: true, data: { id: projectId }, message: "Proyek berhasil disimpan." };
   } catch (error) {
     const duplicate = typeof error === "object" && error !== null && "code" in error && error.code === "23505";
@@ -29,8 +32,13 @@ export async function deleteProjectAction(id: string) {
   try {
     await deleteProject(id);
     revalidatePath("/admin/projects");
+    updateTag(publicCacheTags.projects);
   } catch (error) {
-    console.error("Project deletion failed", error);
+    logServerEvent("error", {
+      category: "database",
+      action: "project_delete_failed",
+      error,
+    });
   }
 }
 

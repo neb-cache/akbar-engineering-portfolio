@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Experience } from "@/types/experience";
 import type { PublicProject } from "@/types/project";
@@ -8,6 +9,8 @@ import type { Skill } from "@/types/skill";
 import type { PublicProjectAuthority } from "@/types/authority";
 import type { Json, PublicMentorshipRecordRow, PublicProjectRow } from "@/types/database";
 import { getPublicCaseStudySections, getPublicMentorshipRecords, getPublicProjectDiagrams, getPublicProjectMetrics } from "@/lib/services/authority";
+import { logServerEvent } from "@/lib/observability/logger";
+import { PUBLIC_CACHE_REVALIDATE_SECONDS, publicCacheTags } from "@/lib/public/cache";
 
 export type PublicSiteProfile = {
   name: string;
@@ -59,7 +62,7 @@ function stringValue(value: Json | undefined) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
-export const getPublicSiteProfile = cache(async (): Promise<PublicSiteProfile> => {
+const getPublicSiteProfileCached = unstable_cache(async (): Promise<PublicSiteProfile> => {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("site_settings")
@@ -101,13 +104,22 @@ export const getPublicSiteProfile = cache(async (): Promise<PublicSiteProfile> =
     recruiterCta: stringValue(authority.recruiterCta) ?? fallbackProfile.recruiterCta,
     incident: { title: stringValue(incident.title) ?? fallbackProfile.incident.title, summary: stringValue(incident.summary) ?? fallbackProfile.incident.summary, metricLabel: stringValue(incident.metricLabel) ?? fallbackProfile.incident.metricLabel, metricValue: stringValue(incident.metricValue) ?? fallbackProfile.incident.metricValue, metricContext: stringValue(incident.metricContext) ?? fallbackProfile.incident.metricContext },
   };
+}, ["public-site-profile-v1"], {
+  tags: [publicCacheTags.profile],
+  revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
 });
+
+export const getPublicSiteProfile = cache(getPublicSiteProfileCached);
 
 export async function getPublicSiteProfileSafe() {
   try {
     return await getPublicSiteProfile();
   } catch (error) {
-    console.error("Public site settings could not be loaded", error);
+    logServerEvent("error", {
+      category: "public-data",
+      action: "site_profile_load_failed",
+      error,
+    });
     return fallbackProfile;
   }
 }
@@ -134,7 +146,7 @@ async function hydrateProjects(rows: PublicProjectRow[]): Promise<PublicProject[
   }));
 }
 
-export const getPublicProjects = cache(async (): Promise<PublicProject[]> => {
+const getPublicProjectsCached = unstable_cache(async (): Promise<PublicProject[]> => {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("public_projects")
@@ -155,14 +167,19 @@ export const getPublicProjects = cache(async (): Promise<PublicProject[]> => {
     return hydrateProjects(fallback.data ?? []);
   }
   throw error;
+}, ["public-projects-v1"], {
+  tags: [publicCacheTags.projects],
+  revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
 });
+
+export const getPublicProjects = cache(getPublicProjectsCached);
 
 export const getPublicProjectBySlug = cache(async (slug: string) => {
   const projects = await getPublicProjects();
   return projects.find((project) => project.slug === slug) ?? null;
 });
 
-export const getPublicExperiences = cache(async (): Promise<Experience[]> => {
+const getPublicExperiencesCached = unstable_cache(async (): Promise<Experience[]> => {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("experiences")
@@ -171,9 +188,14 @@ export const getPublicExperiences = cache(async (): Promise<Experience[]> => {
     .order("start_date", { ascending: false });
   if (error) throw error;
   return (data ?? []) as unknown as Experience[];
+}, ["public-experiences-v1"], {
+  tags: [publicCacheTags.experiences],
+  revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
 });
 
-export const getPublicSkills = cache(async (): Promise<Skill[]> => {
+export const getPublicExperiences = cache(getPublicExperiencesCached);
+
+const getPublicSkillsCached = unstable_cache(async (): Promise<Skill[]> => {
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("skills")
@@ -183,20 +205,51 @@ export const getPublicSkills = cache(async (): Promise<Skill[]> => {
     .order("name");
   if (error) throw error;
   return data ?? [];
+}, ["public-skills-v1"], {
+  tags: [publicCacheTags.skills],
+  revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
 });
 
-export const getPublicProjectAuthoritySafe = cache(async (projectId: string): Promise<PublicProjectAuthority> => {
+export const getPublicSkills = cache(getPublicSkillsCached);
+
+const getPublicProjectAuthoritySafeCached = unstable_cache(async (projectId: string): Promise<PublicProjectAuthority> => {
   try {
     const [sections, metrics, diagrams] = await Promise.all([getPublicCaseStudySections(projectId), getPublicProjectMetrics(projectId), getPublicProjectDiagrams(projectId)]);
     return { sections, metrics, diagrams };
   } catch (error) {
     const code = typeof error === "object" && error !== null && "code" in error ? error.code : null;
-    if (code !== "PGRST205" && code !== "42P01") console.error("Public project authority could not be loaded", error);
+    if (code !== "PGRST205" && code !== "42P01") {
+      logServerEvent("error", {
+        category: "public-data",
+        action: "project_authority_load_failed",
+        error,
+      });
+    }
     return { sections: [], metrics: [], diagrams: [] };
   }
+}, ["public-project-authority-v1"], {
+  tags: [publicCacheTags.authority],
+  revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
 });
 
-export const getPublicMentorshipRecordsSafe = cache(async (): Promise<PublicMentorshipRecordRow[]> => {
+export const getPublicProjectAuthoritySafe = cache(getPublicProjectAuthoritySafeCached);
+
+const getPublicMentorshipRecordsSafeCached = unstable_cache(async (): Promise<PublicMentorshipRecordRow[]> => {
   try { return await getPublicMentorshipRecords(); }
-  catch (error) { const code = typeof error === "object" && error !== null && "code" in error ? error.code : null; if (code !== "PGRST205" && code !== "42P01") console.error("Public mentorship records could not be loaded", error); return []; }
+  catch (error) {
+    const code = typeof error === "object" && error !== null && "code" in error ? error.code : null;
+    if (code !== "PGRST205" && code !== "42P01") {
+      logServerEvent("error", {
+        category: "public-data",
+        action: "mentorship_load_failed",
+        error,
+      });
+    }
+    return [];
+  }
+}, ["public-mentorship-v1"], {
+  tags: [publicCacheTags.mentorship],
+  revalidate: PUBLIC_CACHE_REVALIDATE_SECONDS,
 });
+
+export const getPublicMentorshipRecordsSafe = cache(getPublicMentorshipRecordsSafeCached);

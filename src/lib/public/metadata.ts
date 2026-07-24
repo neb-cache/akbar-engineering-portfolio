@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getPublicEnv } from "@/lib/env-public";
 
-export const defaultDescription = "Full-Stack and Systems Engineer specializing in Golang, Next.js, Flutter, ERP integration, AI automation, and production infrastructure.";
+export const defaultDescription = "Akbar A.R. Antapradja is a Principal Full-Stack & Systems Engineer building production software, enterprise integrations, automation, infrastructure, and the teams that operate them.";
 
 export function absoluteUrl(path = "/") {
   return new URL(path, getPublicEnv().NEXT_PUBLIC_SITE_URL).toString();

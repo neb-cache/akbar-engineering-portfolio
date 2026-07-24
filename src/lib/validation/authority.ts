@@ -2,6 +2,11 @@ import { z } from "zod";
 
 const keySchema = z.string().trim().min(2).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Gunakan huruf kecil, angka, dan tanda hubung.");
 const sortOrderSchema = z.number().int().min(0).max(100000);
+const httpsUrlSchema = z.url().refine(
+  (value) => new URL(value).protocol === "https:",
+  "Gunakan URL HTTPS.",
+);
+const optionalHttpsUrlSchema = z.union([z.literal(""), httpsUrlSchema]);
 
 export const caseStudySectionTypes = ["summary","context","challenge","constraint","responsibility","architecture","approach","decision","tradeoff","coordination","outcome","lesson","confidentiality","custom"] as const;
 export const caseStudySectionSchema = z.object({
@@ -46,7 +51,7 @@ export const mentorshipRecordSchema = z.object({
 });
 
 export const projectImageMetadataSchema = z.object({
-  projectId: z.uuid(), imageUrl: z.url(), altText: z.string().trim().min(5).max(300), caption: z.string().trim().max(1000),
+  projectId: z.uuid(), imageUrl: httpsUrlSchema, altText: z.string().trim().min(5).max(300), caption: z.string().trim().max(1000),
   imageCategory: z.enum(["interface","mobile","architecture","workflow","infrastructure","report","code","documentation","other"]),
   isPublic: z.boolean(), sortOrder: sortOrderSchema,
 });
@@ -59,7 +64,7 @@ export const authoritySettingsSchema = z.object({
   professionalName: z.string().trim().min(2).max(120), fullName: z.string().trim().min(2).max(120), title: z.string().trim().min(2).max(160),
   secondaryIdentity: z.string().trim().min(2).max(160), heroHeadline: z.string().trim().min(20).max(300), heroDescription: z.string().trim().min(20).max(1200),
   email: z.union([z.literal(""), z.email()]), location: z.string().trim().min(2).max(160), availability: z.string().trim().min(2).max(300),
-  githubUrl: z.union([z.literal(""), z.url()]), linkedinUrl: z.union([z.literal(""), z.url()]), resumeUrl: z.union([z.literal(""), z.url()]),
+  githubUrl: optionalHttpsUrlSchema, linkedinUrl: optionalHttpsUrlSchema, resumeUrl: optionalHttpsUrlSchema,
   builderStatement: z.string().trim().min(20).max(1200), systemsPillar: z.string().trim().min(20).max(1200), peoplePillar: z.string().trim().min(20).max(1200), executionPillar: z.string().trim().min(20).max(1200), recruiterCta: z.string().trim().min(10).max(500),
   incidentTitle: z.string().trim().min(5).max(180), incidentSummary: z.string().trim().min(20).max(2000), incidentMetricLabel: z.string().trim().min(2).max(100), incidentMetricValue: z.string().trim().min(1).max(100), incidentMetricContext: z.string().trim().min(2).max(300),
 });

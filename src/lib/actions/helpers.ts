@@ -1,5 +1,6 @@
 import type { ZodError } from "zod";
 import type { ActionResult } from "@/types/action";
+import { logServerEvent } from "@/lib/observability/logger";
 
 export function invalidResult(error: ZodError): ActionResult<never> {
   return {
@@ -10,6 +11,10 @@ export function invalidResult(error: ZodError): ActionResult<never> {
 }
 
 export function safeError(message: string, error: unknown): ActionResult<never> {
-  console.error(message, error);
+  logServerEvent("error", {
+    category: "database",
+    action: "server_action_failed",
+    error,
+  });
   return { success: false, message };
 }

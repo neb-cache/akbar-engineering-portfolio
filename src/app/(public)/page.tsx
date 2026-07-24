@@ -10,7 +10,9 @@ import { IncidentResponseFeature } from "@/components/public/incident-response-f
 import { InternationalDelivery } from "@/components/public/international-delivery";
 import { SectionHeading } from "@/components/public/section-heading";
 import { SystemsPeopleExecution } from "@/components/public/systems-people-execution";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getPublicExperiences, getPublicMentorshipRecordsSafe, getPublicProjects, getPublicSiteProfileSafe, getPublicSkills } from "@/lib/public/data";
+import { absoluteUrl } from "@/lib/public/metadata";
 
 const chain = [
   ["01", "Frontend", "Interfaces, product workflows, and accessible web experiences."],
@@ -25,6 +27,40 @@ export default async function HomePage() {
   const [profile, projects, experiences, skills, mentorship] = await Promise.all([getPublicSiteProfileSafe(), getPublicProjects(), getPublicExperiences(), getPublicSkills(), getPublicMentorshipRecordsSafe()]);
   return (
     <>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "@id": absoluteUrl("/#person"),
+            name: profile.professionalName,
+            alternateName: profile.name,
+            jobTitle: profile.title,
+            description: profile.heroDescription,
+            url: absoluteUrl("/"),
+            homeLocation: { "@type": "Place", name: profile.location },
+            sameAs: [profile.githubUrl, profile.linkedinUrl].filter(Boolean),
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": absoluteUrl("/#website"),
+            name: "Akbar A.R. Engineering Portfolio",
+            url: absoluteUrl("/"),
+            inLanguage: "en",
+            author: { "@id": absoluteUrl("/#person") },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "ProfilePage",
+            "@id": absoluteUrl("/#profile"),
+            url: absoluteUrl("/"),
+            name: `${profile.professionalName} — ${profile.title}`,
+            mainEntity: { "@id": absoluteUrl("/#person") },
+            isPartOf: { "@id": absoluteUrl("/#website") },
+          },
+        ]}
+      />
       <Hero profile={profile} />
       <SystemsPeopleExecution profile={profile} />
       <section className="editorial-section"><div className="public-container"><SectionHeading label="Engineering range" title="One engineer across the entire delivery chain." description="I work across application layers because system outcomes rarely stop at a framework boundary." /><div className="grid border-l border-t border-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">{chain.map(([number, title, description]) => <article key={number} className="interactive-panel border-b border-r border-[var(--border)] p-6 sm:p-8"><span className="font-mono text-xs text-[var(--accent-gold)]">{number}</span><h3 className="mt-8 font-serif text-3xl">{title}</h3><p className="reading-measure mt-3 text-sm leading-7 text-[var(--text-secondary)]">{description}</p></article>)}</div></div></section>

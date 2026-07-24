@@ -1,11 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
+import { publicCacheTags } from "@/lib/public/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createExperience, deleteExperience, updateExperience } from "@/lib/services/experiences";
 import { experienceSchema, type ExperienceInput } from "@/lib/validation/experience";
 import { invalidResult, safeError } from "./helpers";
 import type { ActionResult } from "@/types/action";
+import { logServerEvent } from "@/lib/observability/logger";
 
 export async function saveExperienceAction(id: string | null, input: ExperienceInput): Promise<ActionResult<{ id: string }>> {
   await requireAdmin();
@@ -15,6 +17,7 @@ export async function saveExperienceAction(id: string | null, input: ExperienceI
     const experienceId = id ? (await updateExperience(id, parsed.data), id) : await createExperience(parsed.data);
     revalidatePath("/admin/experiences");
     revalidatePath("/");
+    updateTag(publicCacheTags.experiences);
     return { success: true, data: { id: experienceId }, message: "Pengalaman berhasil disimpan." };
   } catch (error) {
     return safeError("Pengalaman gagal disimpan.", error);
@@ -26,7 +29,12 @@ export async function deleteExperienceAction(id: string) {
   try {
     await deleteExperience(id);
     revalidatePath("/admin/experiences");
+    updateTag(publicCacheTags.experiences);
   } catch (error) {
-    console.error("Experience deletion failed", error);
+    logServerEvent("error", {
+      category: "database",
+      action: "experience_delete_failed",
+      error,
+    });
   }
 }
