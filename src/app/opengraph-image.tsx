@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Akbar A.R. Antapradja engineering portfolio";
+export const alt = "Akbar A.R — Engineering Portfolio";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -24,7 +24,7 @@ export default function OpenGraphImage() {
       </div>
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", fontSize: 74, lineHeight: 1.05, fontWeight: 700 }}>
-          Akbar A.R. Antapradja
+          Akbar A.R
         </div>
         <div style={{ display: "flex", marginTop: 26, fontSize: 34, color: "#c9c6bb" }}>
           Principal Full-Stack &amp; Systems Engineer
