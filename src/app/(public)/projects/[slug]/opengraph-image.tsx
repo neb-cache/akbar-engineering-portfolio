@@ -14,7 +14,7 @@ export default async function ProjectOpenGraphImage({
   const project = await getPublicProjectBySlug(slug);
   const title = project?.title ?? "Engineering Project";
   const category = project?.project_type ?? "Professional case study";
-  const summary = project?.short_description ?? "A public engineering record by Akbar A.R. Antapradja.";
+  const summary = project?.short_description ?? "A public engineering record by Akbar A.R";
 
   return new ImageResponse(
     <div
@@ -42,7 +42,7 @@ export default async function ProjectOpenGraphImage({
         </div>
       </div>
       <div style={{ display: "flex", fontSize: 22, color: "#d5a94e" }}>
-        Akbar A.R. Antapradja · Principal Full-Stack &amp; Systems Engineer
+        Akbar A.R · Principal Full-Stack &amp; Systems Engineer
       </div>
     </div>,
     size,

@@ -25,13 +25,13 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getPublicEnv().NEXT_PUBLIC_SITE_URL),
   title: {
-    default: "Akbar A.R. Antapradja — Principal Full-Stack & Systems Engineer",
-    template: "%s — Akbar A.R. Antapradja",
+    default: "Akbar A.R — Principal Full-Stack & Systems Engineer",
+    template: "%s — Akbar A.R",
   },
   description: defaultDescription,
   applicationName: "Akbar A.R. Engineering Portfolio",
-  authors: [{ name: "Akbar A.R. Antapradja" }],
-  creator: "Akbar A.R. Antapradja",
+  authors: [{ name: "Akbar A.R" }],
+  creator: "Akbar A.R",
   category: "technology",
   keywords: [
     "Principal Full-Stack Engineer",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Akbar A.R. Antapradja — Principal Full-Stack & Systems Engineer",
+    title: "Akbar A.R — Principal Full-Stack & Systems Engineer",
     description: defaultDescription,
     url: "/",
     type: "website",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Akbar A.R. Antapradja — Principal Full-Stack & Systems Engineer",
+    title: "Akbar A.R — Principal Full-Stack & Systems Engineer",
     description: defaultDescription,
   },
   robots: {

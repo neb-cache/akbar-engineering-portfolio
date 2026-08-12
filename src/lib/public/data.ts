@@ -35,7 +35,7 @@ export type PublicSiteProfile = {
 
 export const fallbackProfile: PublicSiteProfile = {
   name: "Akbar Aulia Ramadhan",
-  professionalName: "Akbar A.R. Antapradja",
+  professionalName: "Akbar A.R",
   title: "Principal Full-Stack & Systems Engineer",
   secondaryIdentity: "Builder of Systems & People",
   heroTitle: "Building systems, teams, and operational capability across software, integration, automation, and infrastructure.",

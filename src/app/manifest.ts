@@ -3,7 +3,7 @@ import { defaultDescription } from "@/lib/public/metadata";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Akbar A.R. Antapradja — Engineering Portfolio",
+    name: "Akbar A.R — Engineering Portfolio",
     short_name: "Akbar A.R.",
     description: defaultDescription,
     start_url: "/",
